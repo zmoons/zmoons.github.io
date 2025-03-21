@@ -1,0 +1,20 @@
+{
+  "site": {
+    "title": "zmoons",
+    "description": "zmoons"
+  },
+  "nav": {
+    "home": "首页",
+    "article": "文章",
+    "picture": "图片",
+    "video": "视频",
+    "game": "游戏"
+  },
+  "footer": {
+    "copyright": "© 2023 zmoons. 保留所有权利。",
+    "contact": "联系邮箱：zmoons{'@'}qq.com"
+  },
+  "common": {
+    "language": "语言"
+  }
+}

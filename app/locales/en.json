@@ -1,0 +1,20 @@
+{
+  "site": {
+    "title": "zmoons",
+    "description": "zmoons"
+  },
+  "nav": {
+    "home": "Home",
+    "article": "Articles",
+    "picture": "Pictures",
+    "video": "Videos",
+    "game": "Games"
+  },
+  "footer": {
+    "copyright": "© 2023 zmoons. All rights reserved.",
+    "contact": "email: example{'@'}example.com"
+  },
+  "common": {
+    "language": "Language"
+  }
+}
