@@ -8,6 +8,7 @@ export default defineNuxtConfig({
       title: "zmoons",
       link: [],
     },
+    baseURL: process.env.NODE_ENV === 'production' ? '/nuxt/' : '/',
   },
   devServer: {
     host: "0.0.0.0",
