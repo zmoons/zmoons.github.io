@@ -121,7 +121,6 @@ const stopPropagation = (event: Event) => {
       </div>
     </transition>
     <main class="p-6 text-center">
-      <!-- <el-date-picker/> -->
       <NuxtPage />
     </main>
     <!-- <footer class="p-4 text-center">
