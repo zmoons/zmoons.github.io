@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     fallback: "light",
     classPrefix: "",
   },
-  srcDir: "app",
+  srcDir: "app/",
   vite: {
     plugins: [],
   },
