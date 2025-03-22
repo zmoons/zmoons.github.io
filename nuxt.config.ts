@@ -3,17 +3,11 @@ import { defineNuxtConfig } from "nuxt/config";
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
-  ssr: true,
   app: {
     head: {
       title: "zmoons",
       link: [],
     },
-    baseURL: process.env.NODE_ENV === 'production' ? '/nuxt/' : '/',
-    buildAssetsDir: 'assets',
-  },
-  nitro: {
-    preset: 'github-pages'
   },
   devServer: {
     host: "0.0.0.0",
@@ -42,7 +36,7 @@ export default defineNuxtConfig({
     fallback: "light",
     classPrefix: "",
   },
-  srcDir: "app/",
+  srcDir: "app",
   vite: {
     plugins: [],
   },
