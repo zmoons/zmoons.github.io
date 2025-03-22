@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { useThrottle } from "~/composables/useThrottle";
+const props = defineProps<{
+  visible: boolean;
+  fitWidth: string;
+}>();
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false,
-  },
-});
+const emit = defineEmits(["on-close", "on-game-over"]);
 
-const emit = defineEmits(["on-close"]);
 const handleClose = () => {
   emit("on-close");
 };
@@ -26,7 +23,6 @@ interface ColorData {
   num: number;
 }
 
-const fitWidth = ref("100%");
 const levelOptions = [
   { label: "低级", value: 1 },
   { label: "中级", value: 2 },
@@ -42,29 +38,11 @@ const currentData = computed(() => {
   return gameList.value[currentIndex.value];
 });
 
-const updateWidthFn = () => {
-  const width = window.innerWidth;
-  if (width < 640) fitWidth.value = "100%";
-  else if (width < 1024) fitWidth.value = "50%";
-  else fitWidth.value = "30%";
-};
-
-const { throttled: updateWidth, cancel } = useThrottle(updateWidthFn, 200);
-
-onMounted(() => {
-  updateWidthFn();
-  getCurrentColorData();
-  window.addEventListener("resize", updateWidth);
-});
-
-onUnmounted(() => {
-  cancel();
-});
 // 生成当前关卡的随机颜色数据
-function getCurrentColorData() {
+const getCurrentColorData = () => {
   for (let i = 0; i < 12; i++) {
     const mainColor = generateRandomColor();
-    const subColor = adjustSubColor(mainColor, generateSimilarColor(mainColor), "further");
+    const subColor = generateSimilarColor(mainColor);
     const indexNumber = generateRandomIndexAndNumber(i);
     gameList.value.push({
       mainColor,
@@ -73,52 +51,59 @@ function getCurrentColorData() {
       num: indexNumber.num,
     });
   }
-}
+};
 // 生成当前副颜色的随机位置和色块数量
-function generateRandomIndexAndNumber(index: number) {
+const generateRandomIndexAndNumber = (index: number) => {
   let num = 10;
   if (index < 3) num = 4;
   else if (index < 6) num = 9;
   else if (index < 9) num = 16;
   else num = 25;
   return {
-    index: Math.floor(Math.random() * num),
+    index: Math.ceil(Math.random() * num),
     num,
   };
-}
+};
 // 生成随机颜色
-function generateRandomColor() {
+const generateRandomColor = () => {
   const r = Math.floor(Math.random() * 256);
   const g = Math.floor(Math.random() * 256);
   const b = Math.floor(Math.random() * 256);
   return { r, g, b };
-}
+};
 
 // 生成相似颜色
-function generateSimilarColor(color: { r: number; g: number; b: number }) {
+const generateSimilarColor = (color: { r: number; g: number; b: number }) => {
   // 根据难度级别设置固定的颜色差异
   let difference;
   switch (level.value) {
-    case 1: // 低级 - 较大差异 (100)
-      difference = 100;
+    case 1: // 低级 - 较大差异 (60)
+      difference = 60;
       break;
-    case 2: // 中级 - 中等差异 (50)
-      difference = 50;
+    case 2: // 中级 - 中等差异 (40)
+      difference = 40;
       break;
-    case 3: // 高级 - 小差异 (25)
-      difference = 25;
+    case 3: // 高级 - 小差异 (20)
+      difference = 20;
       break;
     default:
-      difference = 100;
+      difference = 50;
   }
 
-  // 固定调整红色通道，使差异更容易识别
+  const r = Math.floor(Math.min(Math.max(color.r + difference, 0), 255));
+  const g = Math.floor(Math.min(Math.max(color.g + difference, 0), 255));
+  const b = Math.floor(Math.min(Math.max(color.b + difference, 0), 255));
+
+  if (r === color.r && g === color.g && b === color.b) {
+    console.log("颜色相同，重新生成");
+    return generateSimilarColor(color);
+  }
   return {
-    r: Math.floor(Math.min(Math.max(color.r + difference, 0), 255)),
-    g: Math.floor(Math.min(Math.max(color.g + difference, 0), 255)),
-    b: Math.floor(Math.min(Math.max(color.b + difference, 0), 255)),
+    r,
+    g,
+    b,
   };
-}
+};
 
 // 将RGB对象转换为CSS颜色字符串
 const mainColorStyle = computed(() => {
@@ -130,43 +115,64 @@ const subColorStyle = computed(() => {
 });
 
 // 调整副颜色使其更接近主颜色
-function adjustSubColor(mainColor: MainColor, subColor: SubColor, direction: "closer" | "further") {
+const adjustSubColor = (
+  mainColor: MainColor,
+  subColor: SubColor,
+  direction: "closer" | "further"
+) => {
   const adjustment = direction === "closer" ? 0.1 : -0.1;
   return {
     r: subColor.r + (mainColor.r - subColor.r) * adjustment,
     g: subColor.g + (mainColor.g - subColor.g) * adjustment,
     b: subColor.b + (mainColor.b - subColor.b) * adjustment,
   };
-}
+};
 
 // 重新开始游戏
-function resetGame() {
+const resetGame = () => {
   gameList.value = [];
   getCurrentColorData();
   score.value = 0;
   currentIndex.value = 0;
   isGameOver.value = false;
-}
+};
 
-function handleClick(item: number) {
+const handleClick = (item: number) => {
   if (item === currentData.value.index) {
     if (currentIndex.value === 11) {
       score.value += 10;
       isGameOver.value = true;
+      emit("on-game-over", {
+        score: score.value,
+        level: level.value,
+        describe: "恭喜你，通关了！",
+      });
     } else {
       score.value += 10;
       currentIndex.value++;
     }
   } else {
-    resetGame();
     isGameOver.value = true;
+    emit("on-game-over", {
+      score: score.value,
+      level: level.value,
+      describe: "很遗憾，你失败了！",
+    });
   }
-}
+};
+
+onMounted(() => {
+  getCurrentColorData();
+});
+
+defineExpose({
+  resetGame,
+});
 </script>
 
 <template>
   <el-dialog
-    v-model="props.visible"
+    :model-value="props.visible"
     :width="fitWidth"
     :append-to-body="true"
     :destroy-on-close="true"
@@ -175,11 +181,16 @@ function handleClick(item: number) {
     @close="handleClose"
   >
     <div class="flex flex-col items-center justify-center">
-      <h2 class="text-xl font-bold c-blue mb-2">颜色找不同</h2>
+      <h2 class="text-xl font-bold c-blue mb-4">颜色找不同</h2>
       <div class="flex flex-row items-center justify-center mb-6">
         <div class="w-50">
           <el-select v-model="level" placeholder="请选择难度" @change="resetGame">
-            <el-option v-for="item in levelOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            <el-option
+              v-for="item in levelOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
           </el-select>
         </div>
         <div class="text-base font-bold c-blue ml-10">得分：{{ score }}</div>
@@ -196,7 +207,8 @@ function handleClick(item: number) {
             v-for="item in currentData.num"
             :key="item"
             :style="{
-              backgroundColor: item === currentData.index ? subColorStyle : mainColorStyle,
+              backgroundColor:
+                item === currentData.index ? subColorStyle : mainColorStyle,
             }"
             class="w-full aspect-square rounded-md cursor-pointer hover:scale-102 transition-all duration-300"
             @click="handleClick(item)"
