@@ -41,11 +41,6 @@ export default defineNuxtConfig({
     plugins: [],
   },
   nitro: {
-    preset: "node-server", // 这里配置了Nitro服务器的预设为node-server,表示使用Node.js作为服务器运行环境
-    prerender: {
-      routes: ['/', '/game', '/about', '/blog'],
-      crawlLinks: true,
-      ignore: ['/api']
-    }
+    preset: "static"
   },
 });
