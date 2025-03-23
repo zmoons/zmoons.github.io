@@ -40,7 +40,4 @@ export default defineNuxtConfig({
   vite: {
     plugins: [],
   },
-  nitro: {
-    preset: "static"
-  },
 });
