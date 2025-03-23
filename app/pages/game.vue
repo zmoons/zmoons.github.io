@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useThrottle } from "~/composables/useThrottle";
 import ColorDifferent from "~/components/ColorDifferent.vue";
 import type { Game, GameResult, GameScoreCloseType } from "~/types/game";
 
