@@ -8,7 +8,7 @@ export interface GameResult {
 
 export interface Game {
   name: string
-  url: string
+  image?: string
   component: Component
   ref: string
   init: boolean,

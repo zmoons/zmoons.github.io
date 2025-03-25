@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import ColorDifferent from "~/components/ColorDifferent.vue";
+import TwentyFortyEight from "~/components/TwentyFortyEight.vue";
 import type { Game, GameResult, GameScoreCloseType } from "~/types/game";
 
 const games = ref<Game[]>([
   {
     name: "颜色找不同",
-    url: "/img/color.png",
     component: markRaw(ColorDifferent),
     ref: "ColorDifferent",
+    init: false,
+    rank: [],
+  },
+  {
+    name: "2048",
+    component: markRaw(TwentyFortyEight),
+    ref: "TwentyFortyEight",
     init: false,
     rank: [],
   },
@@ -22,7 +29,7 @@ const gameScoreVisible = ref(false);
 const gameResult = ref<GameResult>({ score: 0, level: 1, describe: "" });
 // 是否动画
 const isAnimateScale = computed(() => {
-  return !games.value.every((game) => game.init);
+  return games.value.filter((game) => game.init).length === 0;
 });
 
 // dialog宽度
@@ -111,9 +118,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"
-  >
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
     <div
       v-for="(game, index) in games"
       :key="index"
@@ -122,17 +127,11 @@ onMounted(() => {
       <h2 class="text-xl font-bold c-blue mb-2">{{ game.name }}</h2>
       <div class="text-red">排行榜</div>
       <div class="flex flex-row items-center justify-center">
-        <div
-          v-for="(item, index) in game.rank"
-          :key="index"
-          class="flex flex-row items-center m-1"
-        >
+        <div v-for="(item, index) in game.rank" :key="index" class="flex flex-row items-center m-1">
           <nuxt-icon v-if="index === 0" name="game/first" filled />
           <nuxt-icon v-if="index === 1" name="game/second" filled />
           <nuxt-icon v-if="index === 2" name="game/third" filled />
-          <div v-if="item.level" class="text-3 text-gray-500">
-            [{{ levelName(item.level) }}]
-          </div>
+          <div v-if="item.level" class="text-3 text-gray-500">[{{ levelName(item.level) }}]</div>
           <div class="text-sm font-bold">{{ item.score }}</div>
         </div>
       </div>
@@ -155,13 +154,7 @@ onMounted(() => {
         @on-game-over="handleGameOver"
       />
     </div>
-    <GameScore
-      :visible="gameScoreVisible"
-      :fit-width="fitWidth"
-      :gameResult="gameResult"
-      @on-close="handleScoreClose"
-      @on-restart="handleRestart"
-    />
+    <GameScore :visible="gameScoreVisible" :fit-width="fitWidth" :gameResult="gameResult" @on-close="handleScoreClose" @on-restart="handleRestart" />
   </div>
 </template>
 <style scoped>

@@ -25,3 +25,29 @@ export function useThrottle<T extends (...args: any[]) => any>(fn: T, delay: num
     cancel
   };
 }
+
+export function useDebounce<T extends (...args: any[]) => any>(fn: T, delay: number) {
+  const timer = ref<NodeJS.Timeout | null>(null);
+
+  const debounced = (...args: Parameters<T>): void => {
+    if (timer.value) {
+      clearTimeout(timer.value);
+    }
+
+    timer.value = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+
+  // 清理函数
+  const cancel = () => {
+    if (timer.value) {
+      clearTimeout(timer.value);
+      timer.value = null;
+    }
+  };
+  return {
+    debounced,
+    cancel
+  };
+}
