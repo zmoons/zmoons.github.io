@@ -106,6 +106,7 @@ const processColumn = (direction: "up" | "down") => {
 };
 // 移动
 const handleMove = (direction: "up" | "down" | "left" | "right") => {
+  const oldGameList = JSON.stringify(gameList.value);
   if (direction === "up") {
     processColumn("up");
   } else if (direction === "down") {
@@ -131,7 +132,9 @@ const handleMove = (direction: "up" | "down" | "left" | "right") => {
       describe: "很遗憾，你失败了！",
     });
   } else {
-    randomBlankPosition();
+    if (oldGameList !== JSON.stringify(gameList.value)) {
+      randomBlankPosition();
+    }
   }
 };
 // 判断游戏胜利
@@ -177,10 +180,59 @@ const onKeyDownFn = (e: KeyboardEvent) => {
   }
 };
 
+// 触摸事件处理
+const touchStart = ref({ x: 0, y: 0 });
+const minSwipeDistance = 50; // 最小滑动距离
+
+const handleTouchStart = (e: TouchEvent) => {
+  touchStart.value = {
+    x: e.touches[0].clientX,
+    y: e.touches[0].clientY,
+  };
+};
+
+const handleTouchEnd = (e: TouchEvent) => {
+  const endX = e.changedTouches[0].clientX;
+  const endY = e.changedTouches[0].clientY;
+
+  const deltaX = endX - touchStart.value.x;
+  const deltaY = endY - touchStart.value.y;
+
+  // 判断滑动方向
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    // 水平滑动
+    if (Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX > 0) {
+        handleMove("right");
+      } else {
+        handleMove("left");
+      }
+    }
+  } else {
+    // 垂直滑动
+    if (Math.abs(deltaY) > minSwipeDistance) {
+      if (deltaY > 0) {
+        handleMove("down");
+      } else {
+        handleMove("up");
+      }
+    }
+  }
+};
+
 const { debounced: onKeyDown } = useDebounce(onKeyDownFn, 200);
+
 onMounted(() => {
   randomBlankPosition();
   window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("touchstart", handleTouchStart);
+  window.addEventListener("touchend", handleTouchEnd);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener("touchstart", handleTouchStart);
+  window.removeEventListener("touchend", handleTouchEnd);
 });
 
 defineExpose({
