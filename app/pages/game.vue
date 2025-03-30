@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ColorDifferent from "~/components/ColorDifferent.vue";
 import TwentyFortyEight from "~/components/TwentyFortyEight.vue";
+import GreedySnake from "~/components/GreedySnake.vue";
 import type { Game, GameResult, GameScoreCloseType } from "~/types/game";
 
 const games = ref<Game[]>([
@@ -18,6 +19,19 @@ const games = ref<Game[]>([
     init: false,
     rank: [],
   },
+  {
+    name: "贪吃蛇",
+    component: markRaw(GreedySnake),
+    ref: "GreedySnake",
+    init: false,
+    rank: [],
+  },
+]);
+// 游戏难度等级
+const levelOptions = ref([
+  { label: "低级", value: 1 },
+  { label: "中级", value: 2 },
+  { label: "高级", value: 3 },
 ]);
 // 当前游戏索引
 const currentGameIndex = ref<number>(0);
@@ -60,9 +74,8 @@ const handleScoreClose = (type: GameScoreCloseType) => {
     gameScoreVisible.value = false;
   } else if (type === "exit") {
     gameScoreVisible.value = false;
-    games.value[currentGameIndex.value].init = false;
+    handleGameClose()
   }
-  gameRefList.value[games.value[currentGameIndex.value].ref]?.resetGame();
 };
 // 游戏结束
 const handleGameOver = (result: GameResult) => {
@@ -118,7 +131,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4"
+  >
     <div
       v-for="(game, index) in games"
       :key="index"
@@ -127,11 +142,17 @@ onMounted(() => {
       <h2 class="text-xl font-bold c-blue mb-2">{{ game.name }}</h2>
       <div class="text-red">排行榜</div>
       <div class="flex flex-row items-center justify-center">
-        <div v-for="(item, index) in game.rank" :key="index" class="flex flex-row items-center m-1">
+        <div
+          v-for="(item, index) in game.rank"
+          :key="index"
+          class="flex flex-row items-center m-1"
+        >
           <nuxt-icon v-if="index === 0" name="game/first" filled />
           <nuxt-icon v-if="index === 1" name="game/second" filled />
           <nuxt-icon v-if="index === 2" name="game/third" filled />
-          <div v-if="item.level" class="text-3 text-gray-500">[{{ levelName(item.level) }}]</div>
+          <div v-if="item.level" class="text-2 text-gray-500">
+            [{{ levelName(item.level) }}]
+          </div>
           <div class="text-sm font-bold">{{ item.score }}</div>
         </div>
       </div>
@@ -150,11 +171,18 @@ onMounted(() => {
         :is="game.component"
         :visible="game.init"
         :fit-width="fitWidth"
+        :level-options="levelOptions"
         @on-close="handleGameClose"
         @on-game-over="handleGameOver"
       />
     </div>
-    <GameScore :visible="gameScoreVisible" :fit-width="fitWidth" :gameResult="gameResult" @on-close="handleScoreClose" @on-restart="handleRestart" />
+    <GameScore
+      :visible="gameScoreVisible"
+      :fit-width="fitWidth"
+      :gameResult="gameResult"
+      @on-close="handleScoreClose"
+      @on-restart="handleRestart"
+    />
   </div>
 </template>
 <style scoped>

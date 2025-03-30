@@ -24,9 +24,16 @@ export interface GameScoreProps {
   fitWidth: string
 }
 
+export interface GameProps {
+  visible: boolean
+  fitWidth: string
+  levelOptions: { label: string; value: number }[]
+}
+
 export type GameScoreCloseType = "off" | "exit"
 
 export interface GameScoreEmits {
   (e: "on-close", type: GameScoreCloseType): void;
   (e: "on-restart"): void;
+  (e: "on-game-over", gameResult: GameResult): void;
 }

@@ -1,24 +1,20 @@
 <script setup lang="ts">
-const props = defineProps<{
-  visible: boolean;
-  fitWidth: string;
-}>();
+import type { GameProps, GameScoreEmits } from "~/types/game";
 
-const emit = defineEmits(["on-close", "on-game-over"]);
+const { visible, fitWidth, levelOptions } = defineProps<GameProps>();
+
+const emit = defineEmits<GameScoreEmits>();
 
 const handleClose = () => {
-  emit("on-close");
+  emit("on-close", "off");
 };
-
-const levelOptions = [
-  { label: "低级", value: 1 },
-  { label: "中级", value: 2 },
-  { label: "高级", value: 3 },
-];
 
 const level = ref(1); // 1: 低级, 2: 中级, 3: 高级
 const score = ref(0);
-const gameList = ref<number[][]>(Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0)));
+const isGameOver = ref(false);
+const gameList = ref<number[][]>(
+  Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0))
+);
 const gameBgColor = <Record<number, string>>{
   0: "#CDC1B4",
   2: "#EEE4DA",
@@ -60,7 +56,8 @@ const randomBlankPosition = () => {
   const randomIndex = Math.floor(Math.random() * emptyCells.length);
   if (emptyCells.length > 0) {
     const { row, col } = emptyCells[randomIndex];
-    gameList.value[row][col] = Math.random() < (level.value === 1 ? 0.9 : level.value === 2 ? 0.6 : 0.3) ? 2 : 4;
+    gameList.value[row][col] =
+      Math.random() < (level.value === 1 ? 0.9 : level.value === 2 ? 0.6 : 0.3) ? 2 : 4;
   }
 };
 // 处理一行左移
@@ -106,6 +103,7 @@ const processColumn = (direction: "up" | "down") => {
 };
 // 移动
 const handleMove = (direction: "up" | "down" | "left" | "right") => {
+  if (isGameOver.value) return;
   const oldGameList = JSON.stringify(gameList.value);
   if (direction === "up") {
     processColumn("up");
@@ -120,12 +118,14 @@ const handleMove = (direction: "up" | "down" | "left" | "right") => {
     });
   }
   if (checkWin(gameList.value)) {
+    isGameOver.value = true;
     emit("on-game-over", {
       score: score.value,
       level: level.value,
       describe: "恭喜你，通关了！",
     });
   } else if (checkFail(gameList.value)) {
+    isGameOver.value = true;
     emit("on-game-over", {
       score: score.value,
       level: level.value,
@@ -166,6 +166,7 @@ const resetGame = () => {
   score.value = 0;
   gameList.value = Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0));
   randomBlankPosition();
+  isGameOver.value = false;
 };
 
 const onKeyDownFn = (e: KeyboardEvent) => {
@@ -220,7 +221,7 @@ const handleTouchEnd = (e: TouchEvent) => {
   }
 };
 
-const { debounced: onKeyDown } = useDebounce(onKeyDownFn, 200);
+const { debounced: onKeyDown } = useDebounce(onKeyDownFn, 100);
 
 onMounted(() => {
   randomBlankPosition();
@@ -242,7 +243,7 @@ defineExpose({
 
 <template>
   <el-dialog
-    :model-value="props.visible"
+    :model-value="visible"
     :width="fitWidth"
     :append-to-body="true"
     :destroy-on-close="true"
@@ -255,7 +256,12 @@ defineExpose({
       <div class="flex flex-row items-center justify-center mb-6">
         <div class="w-50">
           <el-select v-model="level" placeholder="请选择难度" @change="resetGame">
-            <el-option v-for="item in levelOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            <el-option
+              v-for="item in levelOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
           </el-select>
         </div>
         <div class="text-base font-bold c-blue ml-5">得分：{{ score }}</div>

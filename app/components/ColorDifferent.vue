@@ -1,13 +1,12 @@
 <script setup lang="ts">
-const props = defineProps<{
-  visible: boolean;
-  fitWidth: string;
-}>();
+import type { GameProps, GameScoreEmits } from "~/types/game";
 
-const emit = defineEmits(["on-close", "on-game-over"]);
+const { visible, fitWidth, levelOptions } = defineProps<GameProps>();
+
+const emit = defineEmits<GameScoreEmits>();
 
 const handleClose = () => {
-  emit("on-close");
+  emit("on-close", "off");
 };
 
 interface MainColor {
@@ -22,12 +21,6 @@ interface ColorData {
   index: number;
   num: number;
 }
-
-const levelOptions = [
-  { label: "低级", value: 1 },
-  { label: "中级", value: 2 },
-  { label: "高级", value: 3 },
-];
 
 const level = ref(1); // 1: 低级, 2: 中级, 3: 高级
 const score = ref(0);
@@ -172,7 +165,7 @@ defineExpose({
 
 <template>
   <el-dialog
-    :model-value="props.visible"
+    :model-value="visible"
     :width="fitWidth"
     :append-to-body="true"
     :destroy-on-close="true"
