@@ -68,3 +68,13 @@ html.dark {
   --el-menu-bg-color: #252525;
   --el-border-color-extra-light: #252525;
 }
+
+::view-transition-new(root),
+::view-transition-old(root) {
+  /* 关闭默认动画 */
+  animation: none !important;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 100 !important;
+}
