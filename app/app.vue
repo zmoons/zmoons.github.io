@@ -44,6 +44,10 @@ const switchLanguage = (localeCode: any) => {
 };
 
 const onClick = (e: MouseEvent) => {
+  if (!document.startViewTransition) {
+    colorMode.value === "light" ? (colorMode.preference = "dark") : (colorMode.preference = "light");
+    return;
+  }
   const transition = document.startViewTransition(() => {
     // 动画过渡切换主题色
     colorMode.value === "light" ? (colorMode.preference = "dark") : (colorMode.preference = "light");
